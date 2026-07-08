@@ -1,0 +1,39 @@
+name: Match Archives Scraper
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch: 
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Initialize and Install dependencies
+        run: |
+          npm init -y
+          npm install axios cheerio
+
+      - name: Run Scraper Script
+        run: node scraper.js
+
+      - name: Commit and Push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Bot"
+          # إضافة الملفين معاً للـ Commit
+          git add Home.json AllMatches.json
+          git commit -m "تحديث تلقائي: جلب أحدث 30 مباراة وكل المباريات" || echo "لا توجد مباريات جديدة لرفعها"
+          git push
